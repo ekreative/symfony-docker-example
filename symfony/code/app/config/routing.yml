@@ -1,5 +1,3 @@
-giantswarm_weather:
-    resource: "@GiantswarmWeatherBundle/Controller/"
+app:
+    resource: "@AppBundle/Controller/"
     type:     annotation
-    prefix:   /
-

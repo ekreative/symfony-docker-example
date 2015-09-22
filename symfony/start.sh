@@ -1,6 +1,6 @@
 #!/bin/bash
 
-export SYMFONY__REDIS_ADDRESS=${REDIS_1_PORT_6379_TCP_ADDR}
+export SYMFONY__REDIS_HOST=${REDIS_1_PORT_6379_TCP_ADDR}
 export SYMFONY__REDIS_PORT=${REDIS_1_PORT_6379_TCP_PORT}
 
 export SYMFONY__DATABASE_HOST=${MYSQL_1_PORT_3306_TCP_ADDR}
@@ -12,4 +12,6 @@ export SYMFONY__DATABASE_PASSWORD=${MYSQL_PASSWORD}
 export SYMFONY__RESQUE_PREFIX=${RESQUE_PREFIX}
 export SYMFONY__RESQUE_QUEUE=${RESQUE_QUEUE}
 
-/bin/bash -c "$*"
+composer install --no-interaction --optimize-autoloader
+
+su www-data -p -c "$*"

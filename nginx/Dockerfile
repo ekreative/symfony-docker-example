@@ -1,14 +1,11 @@
-FROM ubuntu:14.04
+FROM nginx:1
 
-ENV DEBIAN_FRONTEND noninteractive
+RUN usermod -u 1000 www-data
 
-RUN apt-get update && apt-get install -y \
-    nginx
+ENV NGINX_VHOST /etc/nginx/conf.d/default.conf
 
-RUN echo "\ndaemon off;" >> /etc/nginx/nginx.conf
-ADD vhost.conf /etc/nginx/sites-enabled/default
+ADD vhost.conf $NGINX_VHOST
 ADD start.sh /start.sh
 
-EXPOSE 80
-
 ENTRYPOINT ["/start.sh"]
+CMD ["/usr/sbin/nginx", "-g", "\"daemon off;\""]

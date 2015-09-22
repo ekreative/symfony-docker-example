@@ -1,29 +1,78 @@
+symfony_base:
+    build: symfony/
+    env_file: common.env
+
 symfony:
-  build: symfony/
-  links:
-    - redis
-  volumes:
-    - ./symfony/code:/var/www
+    extends:
+        service: symfony_base
+    links:
+        - redis
+        - mysql
+    volumes_from:
+        - data
+
+resque:
+    extends:
+        service: symfony_base
+    links:
+         - redis
+         - mysql
+    command: bin/resque
+    environment:
+        VVERBOSE: 1
+        PREFIX: $RESQUE_PREFIX
+        QUEUE: $RESQUE_QUEUE
+        APP_INCLUDE: app/bootstrap.php.cache
+    volumes_from:
+        - data
+
+resque_scheduler:
+    extends:
+        service: symfony_base
+    links:
+        - redis
+        - mysql
+    command: bin/resque-scheduler
+    environment:
+        VVERBOSE: 1
+        PREFIX: $RESQUE_PREFIX
+    volumes_from:
+        - data
 
 nginx:
-  build: nginx/
-  ports:
-    - 8080:80
-  links:
-    - fpm
-  volumes_from:
-    - symfony
-  environment:
-    <APP_SERVER_NAME>: dev-machine
+    build: nginx/
+    ports:
+        - 8080:80
+    links:
+        - fpm
+    volumes_from:
+        - data
+    environment:
+        APP_SERVER_NAME: dev-machine
 
 fpm:
-  build: php-fpm/
-  links:
-    - redis
-  volumes_from:
-    - symfony
-  environment:
-    APP_SERVER_NAME: dev-machine
+    build: php-fpm/
+    links:
+        - redis
+        - mysql
+    volumes_from:
+        - data
+    env_file: common.env
+    environment:
+        APP_SERVER_NAME: dev-machine
+
+data:
+    build: data/
+    volumes:
+        - ./symfony/code:/var/www
+        - /var/www/app/cache
+        - /var/www/app/logs
 
 redis:
-  image: redis:2.8.13
+    image: redis:3
+
+mysql:
+    image: mysql:5
+    env_file: common.env
+    environment:
+        MYSQL_ROOT_PASSWORD: 8F66mppB8p1xt2M
