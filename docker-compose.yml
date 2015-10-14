@@ -1,10 +1,12 @@
-symfony_base:
+symfony-base:
     build: symfony/
     env_file: common.env
+    labels:
+        io.rancher.sidekicks: redis, mysql, data
 
 symfony:
     extends:
-        service: symfony_base
+        service: symfony-base
     links:
         - redis
         - mysql
@@ -13,26 +15,28 @@ symfony:
 
 resque:
     extends:
-        service: symfony_base
+        service: symfony-base
     links:
          - redis
          - mysql
     command: bin/resque
+    env_file: common.env
     environment:
         VVERBOSE: 1
-        PREFIX: $RESQUE_PREFIX
-        QUEUE: $RESQUE_QUEUE
+        PREFIX: "$RESQUE_PREFIX"
+        QUEUE: "$RESQUE_QUEUE"
         APP_INCLUDE: app/bootstrap.php.cache
     volumes_from:
         - data
 
 resque_scheduler:
     extends:
-        service: symfony_base
+        service: symfony-base
     links:
         - redis
         - mysql
     command: bin/resque-scheduler
+    env_file: common.env
     environment:
         VVERBOSE: 1
         PREFIX: $RESQUE_PREFIX
@@ -42,13 +46,15 @@ resque_scheduler:
 nginx:
     build: nginx/
     ports:
-        - 8080:80
+        - 8001:80
     links:
         - fpm
     volumes_from:
         - data
     environment:
         APP_SERVER_NAME: dev-machine
+    labels:
+        io.rancher.sidekicks: fpm, data
 
 fpm:
     build: php-fpm/
@@ -60,6 +66,8 @@ fpm:
     env_file: common.env
     environment:
         APP_SERVER_NAME: dev-machine
+    labels:
+        io.rancher.sidekicks: data, redis, mysql
 
 data:
     build: data/
